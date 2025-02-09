@@ -1,6 +1,6 @@
-"use client"
+'use client';
 
-import * as React from "react"
+import * as React from 'react';
 import {
   AudioWaveform,
   BookOpen,
@@ -12,156 +12,219 @@ import {
   PieChart,
   Settings2,
   SquareTerminal,
-} from "lucide-react"
-import { TeamSwitcher } from "@/components/ui/team-switcher"
-import { NavMain } from "@/components/ui/nav-main"
-import { NavProjects } from "@/components/ui/nav-projects"
-import { NavUser } from "@/components/ui/nav-user"
+} from 'lucide-react';
+import { TeamSwitcher } from '@/components/ui/team-switcher';
+import { NavMain } from '@/components/ui/nav-main';
+import { NavProjects } from '@/components/ui/nav-projects';
+import { NavUser } from '@/components/ui/nav-user';
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useState } from 'react';
 
 // This is sample data.
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    name: 'shadcn',
+    email: 'm@example.com',
+    avatar: '/avatars/shadcn.jpg',
   },
   teams: [
     {
-      name: "Acme Inc",
+      name: 'Acme Inc',
       logo: GalleryVerticalEnd,
-      plan: "Enterprise",
+      plan: 'Enterprise',
     },
     {
-      name: "Acme Corp.",
+      name: 'Acme Corp.',
       logo: AudioWaveform,
-      plan: "Startup",
+      plan: 'Startup',
     },
     {
-      name: "Evil Corp.",
+      name: 'Evil Corp.',
       logo: Command,
-      plan: "Free",
+      plan: 'Free',
     },
   ],
   navMain: [
     {
-      title: "Playground",
-      url: "#",
+      title: 'Playground',
+      url: '#',
       icon: SquareTerminal,
       isActive: true,
       items: [
         {
-          title: "History",
-          url: "#",
+          title: 'History',
+          url: '#',
         },
         {
-          title: "Starred",
-          url: "#",
+          title: 'Starred',
+          url: '#',
         },
         {
-          title: "Settings",
-          url: "#",
+          title: 'Settings',
+          url: '#',
         },
       ],
     },
     {
-      title: "Models",
-      url: "#",
+      title: 'Models',
+      url: '#',
       icon: Bot,
       items: [
         {
-          title: "Genesis",
-          url: "#",
+          title: 'Genesis',
+          url: '#',
         },
         {
-          title: "Explorer",
-          url: "#",
+          title: 'Explorer',
+          url: '#',
         },
         {
-          title: "Quantum",
-          url: "#",
+          title: 'Quantum',
+          url: '#',
         },
       ],
     },
     {
-      title: "Documentation",
-      url: "#",
+      title: 'Documentation',
+      url: '#',
       icon: BookOpen,
       items: [
         {
-          title: "Introduction",
-          url: "#",
+          title: 'Introduction',
+          url: '#',
         },
         {
-          title: "Get Started",
-          url: "#",
+          title: 'Get Started',
+          url: '#',
         },
         {
-          title: "Tutorials",
-          url: "#",
+          title: 'Tutorials',
+          url: '#',
         },
         {
-          title: "Changelog",
-          url: "#",
+          title: 'Changelog',
+          url: '#',
         },
       ],
     },
     {
-      title: "Settings",
-      url: "#",
+      title: 'Settings',
+      url: '#',
       icon: Settings2,
       items: [
         {
-          title: "General",
-          url: "#",
+          title: 'General',
+          url: '#',
         },
         {
-          title: "Team",
-          url: "#",
+          title: 'Team',
+          url: '#',
         },
         {
-          title: "Billing",
-          url: "#",
+          title: 'Billing',
+          url: '#',
         },
         {
-          title: "Limits",
-          url: "#",
+          title: 'Limits',
+          url: '#',
         },
       ],
     },
   ],
   projects: [
     {
-      name: "Design Engineering",
-      url: "#",
+      name: 'Design Engineering',
+      url: '#',
       icon: Frame,
     },
     {
-      name: "Sales & Marketing",
-      url: "#",
+      name: 'Sales & Marketing',
+      url: '#',
       icon: PieChart,
     },
     {
-      name: "Travel",
-      url: "#",
+      name: 'Travel',
+      url: '#',
       icon: Map,
     },
   ],
-}
+};
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+  onFeedChange,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & {
+  onFeedChange: (feedName: string, feedUrl: string) => void;
+}) {
+  const [rssFeedUrl, setRssFeedUrl] = useState(
+    'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml',
+  );
+  // TODO: mover todo o componente Select de RSS para um arquivo separado
+  const rssFeeds = [
+    {
+      label: 'NY Times - Home Page',
+      value: 'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml',
+    },
+    { label: 'BBC News', value: 'http://feeds.bbci.co.uk/news/rss.xml' },
+    { label: 'CNN', value: 'http://rss.cnn.com/rss/edition.rss' },
+    { label: 'BBC Brasil', value: 'http://www.bbc.co.uk/portuguese/index.xml' },
+    //{ label: 'G1', value: 'https://g1.globo.com/rss/g1/' }, G1 esta crashando
+    {
+      label: 'Gazeta do Povo - Política',
+      value: 'https://www.gazetadopovo.com.br/feed/rss/republica.xml',
+    },
+    {
+      label: 'Gazeta do Povo - Economia',
+      value: 'https://www.gazetadopovo.com.br/feed/rss/economia.xml',
+    },
+    {
+      label: 'Gazeta do Povo - Opiniões',
+      value: 'https://www.gazetadopovo.com.br/feed/rss/opiniao.xml',
+    },
+  ];
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
+        {/* Adicionando o Combobox para selecionar o feed RSS */}
+        <Select
+          onValueChange={(value) => {
+            const selectedFeed = rssFeeds.find((feed) => feed.value === value);
+            setRssFeedUrl(value);
+            if (selectedFeed) {
+              onFeedChange(selectedFeed.label, selectedFeed.value);
+            }
+          }}
+          value={rssFeedUrl}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select RSS Feed" />
+          </SelectTrigger>
+          <SelectContent>
+            {rssFeeds.map((feed) => (
+              <SelectItem key={feed.value} value={feed.value}>
+                {feed.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         <NavMain items={data.navMain} />
         <NavProjects projects={data.projects} />
       </SidebarContent>
@@ -170,5 +233,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

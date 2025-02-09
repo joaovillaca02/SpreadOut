@@ -1,14 +1,24 @@
-import React, { useEffect, useMemo, useState } from "react";
-import Parser from "rss-parser";
-import Image from "next/image";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+import xml2js from 'xml2js';
 
 type FeedItem = {
   title: string;
   link: string;
   pubDate?: string;
   description?: string;
+  creator?: string;
   imageUrl?: string;
 };
 
@@ -20,53 +30,89 @@ const RSSFeed: React.FC<{ feedUrl: string }> = ({ feedUrl }) => {
   const [itemsPerPage] = useState(5);
   const [totalItems, setTotalItems] = useState<number>(0);
 
-  const parser = useMemo(() => new Parser(), []);
-
   useEffect(() => {
     const fetchRSS = async () => {
       setLoading(true);
       try {
-        const feed = await parser.parseURL(feedUrl);
-        const totalFeedItems = feed.items.length;
-        setTotalItems(totalFeedItems);
-
-        const startIndex = (page - 1) * itemsPerPage;
-        const pagedItems = feed.items.slice(startIndex, startIndex + itemsPerPage);
-
-        const parsedItems = pagedItems.map((item) => ({
-          title: item.title,
-          link: item.link,
-          pubDate: item.pubDate,
-          description: item.description || item.content || item["content:encoded"],
-          imageUrl: item["media:content"]?.url,
-        })) as FeedItem[];
-
-        setItems(parsedItems);
-
-        if (feed.image?.url) {
-          setImageUrl(feed.image.url);
+        const response = await fetch(
+          `/api/rss?url=${encodeURIComponent(feedUrl)}`,
+        );
+        if (!response.ok) {
+          throw new Error(`Erro ao buscar RSS: ${response.statusText}`);
         }
+
+        const xmlData = await response.text();
+        xml2js.parseString(xmlData, { explicitArray: false }, (err, result) => {
+          if (err) {
+            console.error('Erro ao parsear XML:', err);
+            return;
+          }
+
+          // 🔹 PEGANDO A IMAGEM DO FEED
+          const feedImage = result.rss.channel.image?.url || null;
+
+          setImageUrl(feedImage); // <-- Salva a imagem do feed
+
+          const items = result.rss.channel.item;
+          if (!items) {
+            console.warn('Nenhum item encontrado no feed');
+            return;
+          }
+
+          const totalFeedItems = Array.isArray(items) ? items.length : 1;
+          setTotalItems(totalFeedItems);
+
+          const startIndex = (page - 1) * itemsPerPage;
+          const pagedItems = Array.isArray(items)
+            ? items.slice(startIndex, startIndex + itemsPerPage)
+            : [items];
+
+          const parsedItems = pagedItems.map(
+            (item: {
+              content: string | undefined;
+              title: string;
+              link: string;
+              pubDate?: string;
+              description?: string;
+              creator?: string;
+              'content:encoded'?: string;
+              'media:content'?: { $: { url: string } };
+              'dc:creator'?: string;
+            }) => {
+              const imageUrl = item['media:content']?.$.url || null;
+              const creator =
+                item['dc:creator'] || item.creator || 'Desconhecido';
+
+              const description =
+                item.description ||
+                item.content ||
+                item['content:encoded'] ||
+                '';
+              const link = item.link;
+              return {
+                title: item.title,
+                description: description,
+                pubDate: item.pubDate,
+                imageUrl: imageUrl,
+                creator: creator,
+                link: link,
+              };
+            },
+          ) as FeedItem[];
+
+          setItems(parsedItems);
+        });
       } catch (error) {
-        console.error("Erro ao buscar feed RSS:", error);
+        console.error('Erro ao buscar feed RSS:', error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchRSS();
-  }, [feedUrl, page, parser, itemsPerPage]);
+  }, [feedUrl, page, itemsPerPage]);
 
-  const goToPreviousPage = () => {
-    if (page > 1) {
-      setPage(page - 1);
-    }
-  };
-
-  const goToNextPage = () => {
-    if (page < Math.ceil(totalItems / itemsPerPage)) {
-      setPage(page + 1);
-    }
-  };
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   return (
     <div className="p-4 w-full max-w-lg mx-auto">
@@ -74,70 +120,115 @@ const RSSFeed: React.FC<{ feedUrl: string }> = ({ feedUrl }) => {
 
       {imageUrl && (
         <div className="flex justify-center mb-4">
-          <Image src={imageUrl} alt="RSS Feed Logo" width={250} height={40} />
+          <Image
+            src={imageUrl}
+            alt="RSS Feed Logo"
+            layout="intrinsic"
+            width={250}
+            height={40}
+          />
         </div>
       )}
 
-    {loading ? (
-      <p>Carregando...</p>
-    ) : (
-      <>
-        {/* Navegação de páginas */}
-        <div className="flex justify-between mt-4 mb-2">
-          <Button onClick={goToPreviousPage} disabled={page <= 1}>
-            Página Anterior
-          </Button>
-          <span className="text-sm self-center">
-            Página {page} de {Math.ceil(totalItems / itemsPerPage)}
-          </span>
-          <Button onClick={goToNextPage} disabled={page >= Math.ceil(totalItems / itemsPerPage)}>
-            Próxima Página
-          </Button>
-        </div>
-        {items.map((item, index) => (
-          <Card key={index} className="mb-2">
-            <CardContent>
-              {item.imageUrl && (
-                <div className="mb-2">
-                  <Image
-                    src={item.imageUrl}
-                    alt={`Imagem relacionada a ${item.title}`}
-                    width={180}
-                    height={100}
-                    className="object-cover rounded"
-                  />
-                </div>
-              )}
-              <h3 className="text-lg font-semibold">{item.title}</h3>
-              {item.description && (
-                <div
-                  className="text-sm text-gray-600"
-                  dangerouslySetInnerHTML={{ __html: item.description }}
+      {loading ? (
+        <p>Carregando...</p>
+      ) : (
+        <>
+          {/* Componente de Paginação */}
+          <Pagination className="mb-4">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (page > 1) setPage(page - 1);
+                  }}
+                  disabled={page <= 1}
                 />
+              </PaginationItem>
+              {[...Array(totalPages).keys()].map((i) => (
+                <PaginationItem key={i + 1}>
+                  <PaginationLink
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setPage(i + 1);
+                    }}
+                    isActive={i + 1 === page}
+                  >
+                    {i + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              {totalPages > 5 && (
+                <PaginationItem>
+                  <PaginationEllipsis />
+                </PaginationItem>
               )}
-              {item.pubDate && (
-                <p className="text-sm text-gray-600">
-                  {new Date(item.pubDate).toLocaleString("pt-BR", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                  })}
-                </p>
-              )}
-              <Button variant="ghost" asChild className="mt-2">
-                <a href={item.link} target="_blank" rel="noopener noreferrer">
-                  Ler mais
-                </a>
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </>
-    )}
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (page < totalPages) setPage(page + 1);
+                  }}
+                  disabled={page >= totalPages}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+
+          {items.map((item, index) => (
+            <Card key={index} className="mb-4 shadow-md">
+              <CardContent>
+                {item.imageUrl && (
+                  <div className="m-2 p-2 w-full h-48 relative flex justify-center">
+                    <Image
+                      src={item.imageUrl}
+                      alt={`Imagem relacionada a ${item.title}`}
+                      layout="fill"
+                      objectFit="cover"
+                      className="rounded"
+                    />
+                  </div>
+                )}
+                <h3 className="text-lg font-semibold mt-2 mb-2">
+                  {item.title}
+                </h3>
+                {item.description && (
+                  <div className="text-sm text-gray-600 mb-2 text-justify">
+                    {item.description.slice(0, 200) + '...'}
+                  </div>
+                )}
+                {item.creator && (
+                  <div className="text-sm text-gray-600 mb-2">
+                    {'Por: ' + item.creator}
+                  </div>
+                )}
+                {item.pubDate && (
+                  <p className="text-sm text-gray-600 mb-2">
+                    {new Date(item.pubDate).toLocaleString('pt-BR', {
+                      weekday: 'long',
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                    })}
+                  </p>
+                )}
+                <Button variant="ghost" asChild className="mt-2">
+                  <a href={item.link} target="_blank" rel="noopener noreferrer">
+                    Ler mais
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </>
+      )}
     </div>
   );
 };

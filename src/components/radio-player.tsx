@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import React, { useRef, useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useRef, useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { Card, CardContent } from '@/components/ui/card';
 
 type RadioStation = {
   name: string;
   url: string;
   country: string;
-  [key: string]: unknown;
+  [key: string]: string;
 };
 
 export const RadioPlayer: React.FC = () => {
@@ -23,28 +23,30 @@ export const RadioPlayer: React.FC = () => {
   useEffect(() => {
     const fetchStations = async () => {
       try {
-        const response = await fetch("https://de1.api.radio-browser.info/json/stations?limit=50");
-        const data: RadioStation[]  = await response.json();
-  
+        const response = await fetch(
+          'https://de1.api.radio-browser.info/json/stations?limit=50',
+        );
+        const data: RadioStation[] = await response.json();
+
         const filteredStations = data
-          .filter(station => station.url && station.name)
-          .map(station => ({
+          .filter((station) => station.url && station.name)
+          .map((station) => ({
             name: station.name,
             url: station.url,
-            country: station.country || "Desconhecido",
+            country: station.country || 'Desconhecido',
           }));
-  
+
         if (filteredStations.length > 0) {
           setStations(filteredStations);
           setCurrentStationIndex(0);
         }
       } catch (err) {
-        console.error("Erro ao buscar estações de rádio:", err);
+        console.error('Erro ao buscar estações de rádio:', err);
       } finally {
         setLoading(false);
       }
     };
-  
+
     fetchStations();
   }, []);
 
@@ -54,7 +56,7 @@ export const RadioPlayer: React.FC = () => {
       audioRef.current
         .play()
         .then(() => setIsPlaying(true))
-        .catch((error) => console.error("Erro ao reproduzir áudio:", error));
+        .catch((error) => console.error('Erro ao reproduzir áudio:', error));
     }
   };
 
@@ -81,32 +83,56 @@ export const RadioPlayer: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="text-center p-4">Carregando estações...</div>;
+  if (loading)
+    return <div className="text-center p-4">Carregando estações...</div>;
 
   return (
     <Card className="p-4 w-full max-w-md mx-auto">
       <CardContent>
-        <h2 className="text-xl font-bold mb-4 text-center">Non-Copyright Radio</h2>
+        <h2 className="text-xl font-bold mb-4 text-center">
+          Non-Copyright Radio
+        </h2>
 
-        <audio ref={audioRef} style={{ display: "none" }} />
+        <audio ref={audioRef} style={{ display: 'none' }} />
 
         <p className="text-center mb-4 font-semibold">
-          Estação atual: {stations[currentStationIndex]?.name} ({stations[currentStationIndex]?.country})
+          Estação atual: {stations[currentStationIndex]?.name} (
+          {stations[currentStationIndex]?.country})
         </p>
 
         <div className="flex justify-between mb-4">
-          <Button onClick={() => changeStation((currentStationIndex - 1 + stations.length) % stations.length)}>
+          <Button
+            onClick={() =>
+              changeStation(
+                (currentStationIndex - 1 + stations.length) % stations.length,
+              )
+            }
+          >
             Anterior
           </Button>
-          {isPlaying ? <Button onClick={stopRadio}>Pausar</Button> : <Button onClick={playRadio}>Play</Button>}
-          <Button onClick={() => changeStation((currentStationIndex + 1) % stations.length)}>
+          {isPlaying ? (
+            <Button onClick={stopRadio}>Pausar</Button>
+          ) : (
+            <Button onClick={playRadio}>Play</Button>
+          )}
+          <Button
+            onClick={() =>
+              changeStation((currentStationIndex + 1) % stations.length)
+            }
+          >
             Próxima
           </Button>
         </div>
 
         <div className="flex items-center mb-4">
           <span className="mr-2">Volume:</span>
-          <Slider value={[volume]} max={1} step={0.01} onValueChange={handleVolumeChange} className="w-full" />
+          <Slider
+            value={[volume]}
+            max={1}
+            step={0.01}
+            onValueChange={handleVolumeChange}
+            className="w-full"
+          />
         </div>
 
         {/* Lista de estações */}
@@ -114,10 +140,15 @@ export const RadioPlayer: React.FC = () => {
           <h3 className="text-lg font-semibold mb-2">Lista de Estações:</h3>
           <ul>
             {stations.map((station, index) => (
-              <li key={index} className="flex justify-between items-center py-2 border-b">
+              <li
+                key={index}
+                className="flex justify-between items-center py-2 border-b"
+              >
                 <div>
                   <span className="font-medium">{station.name}</span>
-                  <span className="text-sm text-gray-500 ml-2">({station.country})</span>
+                  <span className="text-sm text-gray-500 ml-2">
+                    ({station.country})
+                  </span>
                 </div>
                 <Button size="sm" onClick={() => changeStation(index)}>
                   Tocar

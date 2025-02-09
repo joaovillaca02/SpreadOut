@@ -1,0 +1,61 @@
+BBC Brasil: https://www.bbc.com/portuguese/institutional/2011/06/000001_rss
+
+Estadão: https://feeds.estadao.com.br/estadao/br/ultimas/feed
+
+G1: https://g1.globo.com/rss/g1/ultimas-noticias.xml
+
+O Globo: https://oglobo.globo.com/rss/ultimosegundo.xml
+
+UOL Notícias: https://noticias.uol.com.br/feed/ultimas.xml
+
+Correio Braziliense: https://feeds.correio24horas.com.br/correio24horas/ultimas/feed
+
+Gazeta do Povo: https://www.gazetadopovo.com.br/rss/ultimas-noticias.xml
+
+Jornal do Brasil: https://www.jb.com.br/rss/ultimas.xml
+
+O Estado de Minas: https://www.em.com.br/app/rss/ultimas.xml
+
+Zero Hora: https://g1.globo.com/rss/zerohora/ultimas-noticias.xml
+
+Jornal do Commercio: https://jc.ne10.uol.com.br/rss/ultimas.xml
+
+O Povo: https://www.opovo.com.br/rss/ultimas.xml
+
+A Tarde: https://atarde.uol.com.br/rss/ultimas.xml
+
+Diário de Pernambuco: https://www.diariodepernambuco.com.br/rss/ultimas.xml
+
+O Globo Esporte: https://ge.globo.com/Esportes/0,0,GEH946-9645,00.html
+
+Pragmatismo Político: https://feeds.feedburner.com/pragmatismopolitico
+
+The Brazilian Report: https://brazilian.report/feed
+
+Campo Grande News: https://campograndenews.com.br/rss
+
+Revista Fórum: https://revistaforum.com.br/feed
+
+Brasil 247: https://www.brasil247.com.br/rss
+
+Correio do Povo: https://www.correiodopovo.com.br/rss
+
+Jornal do Brasil: https://www.jb.com.br/rss
+
+O Globo: https://oglobo.globo.com/rss
+
+UOL Notícias: https://noticias.uol.com.br/feed
+
+O Estado de S. Paulo: https://feeds.estadao.com.br/estadao/br/ultimas/feed
+
+BBC Brasil: https://www.bbc.com/portuguese/institutional/2011/06/000001_rss
+
+Jornal do Commercio: https://jc.ne10.uol.com.br/rss
+
+O Povo: https://www.opovo.com.br/rss
+
+A Tarde: https://atarde.uol.com.br/rss
+
+Diário de Pernambuco: https://www.diariodepernambuco.com.br/rss
+
+O Globo Esporte: https://ge.globo.com/Esportes/0,0,GEH946-9645,00.html
