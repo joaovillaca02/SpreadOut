@@ -48,10 +48,8 @@ const RSSFeed: React.FC<{ feedUrl: string }> = ({ feedUrl }) => {
             return;
           }
 
-          // 🔹 PEGANDO A IMAGEM DO FEED
           const feedImage = result.rss.channel.image?.url || null;
-
-          setImageUrl(feedImage); // <-- Salva a imagem do feed
+          setImageUrl(feedImage);
 
           const items = result.rss.channel.item;
           if (!items) {
@@ -76,19 +74,40 @@ const RSSFeed: React.FC<{ feedUrl: string }> = ({ feedUrl }) => {
               description?: string;
               creator?: string;
               'content:encoded'?: string;
+              'media:group'?: { 'media:content'?: { $: { url: string } }[] };
               'media:content'?: { $: { url: string } };
               'dc:creator'?: string;
+              'media:thumbnail'?: { $: { url: string } };
             }) => {
-              const imageUrl = item['media:content']?.$.url || null;
-              const creator =
-                item['dc:creator'] || item.creator || 'Desconhecido';
-
-              const description =
+              let description =
                 item.description ||
                 item.content ||
                 item['content:encoded'] ||
                 '';
+
+              let imageUrl =
+                item['media:group']?.['media:content']?.[0]?.$.url ||
+                item['media:content']?.$.url ||
+                null;
+              if (item['media:thumbnail']) {
+                imageUrl = item['media:thumbnail']?.$.url || imageUrl;
+              }
+
+              // Verifica se a descrição contém uma tag <img>
+              if (/<img[^>]+src="([^"]+)"/.test(description)) {
+                // Regex para capturar a URL da imagem dentro do <description>
+                const imgMatch = description.match(/<img[^>]+src="([^"]+)"/);
+                imageUrl = imgMatch ? imgMatch[1] : null;
+
+                // Remove a tag <img> da descrição
+                description = description.replace(/<img[^>]+>/, '').trim();
+                description = description.replace(/<br[^>]+>/, '').trim();
+              }
+
+              const creator =
+                item['dc:creator'] || item.creator || 'Desconhecido';
               const link = item.link;
+
               return {
                 title: item.title,
                 description: description,

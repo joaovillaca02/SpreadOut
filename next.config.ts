@@ -19,6 +19,18 @@ const nextConfig: NextConfig = {
         protocol: 'http',
         hostname: 'www.bbc.co.uk',
       },
+      {
+        protocol: 'https',
+        hostname: 'media.gazetadopovo.com.br',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ichef.bbci.co.uk',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.cnn.com',
+      },
     ],
   },
 };
