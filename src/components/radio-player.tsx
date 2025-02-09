@@ -4,11 +4,14 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 type RadioStation = {
   name: string;
   url: string;
   country: string;
+  favicon: string;
+  tags: string;
   [key: string]: string;
 };
 
@@ -34,6 +37,8 @@ export const RadioPlayer: React.FC = () => {
             name: station.name,
             url: station.url,
             country: station.country || 'Desconhecido',
+            favicon: station.favicon || '',
+            tags: station.tags || '',
           }));
 
         if (filteredStations.length > 0) {
@@ -95,10 +100,16 @@ export const RadioPlayer: React.FC = () => {
 
         <audio ref={audioRef} style={{ display: 'none' }} />
 
-        <p className="text-center mb-4 font-semibold">
-          Estação atual: {stations[currentStationIndex]?.name} (
-          {stations[currentStationIndex]?.country})
-        </p>
+        <div className="flex justify-between items-center mb-4 font-semibold">
+          <Avatar>
+            <AvatarImage src={stations[currentStationIndex].favicon} alt="" />
+            <AvatarFallback> </AvatarFallback>
+          </Avatar>
+          <p className="ml-4">
+            Estação atual: {stations[currentStationIndex]?.name} (
+            {stations[currentStationIndex]?.country})
+          </p>
+        </div>
 
         <div className="flex justify-between mb-4">
           <Button
@@ -144,11 +155,25 @@ export const RadioPlayer: React.FC = () => {
                 key={index}
                 className="flex justify-between items-center py-2 border-b"
               >
-                <div>
-                  <span className="font-medium">{station.name}</span>
-                  <span className="text-sm text-gray-500 ml-2">
-                    ({station.country})
-                  </span>
+                <div className="flex items-center space-x-2">
+                  <Avatar>
+                    <AvatarImage src={station.favicon} alt="" />
+                    <AvatarFallback> </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{station.name}</span>
+                    <span className="text-sm text-gray-500">
+                      ({station.country})
+                    </span>
+                    {station.tags && (
+                      <span className="text-sm text-gray-500">
+                        tags:{' '}
+                        {station.tags.length > 30
+                          ? `${station.tags.slice(0, 30)}...`
+                          : station.tags}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <Button size="sm" onClick={() => changeStation(index)}>
                   Tocar
