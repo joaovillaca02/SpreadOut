@@ -94,44 +94,116 @@ export const RadioPlayer: React.FC = () => {
   return (
     <Card className="p-4 w-full max-w-md mx-auto">
       <CardContent>
-        <h2 className="text-xl font-bold mb-4 text-center">
-          Non-Copyright Radio
-        </h2>
+        <h2 className="text-xl font-bold mb-4 text-center">Radio Player</h2>
 
         <audio ref={audioRef} style={{ display: 'none' }} />
 
-        <div className="flex justify-between items-center mb-4 font-semibold">
+        <div className="flex justify-center items-center mb-4 font-semibold">
           <Avatar>
             <AvatarImage src={stations[currentStationIndex].favicon} alt="" />
             <AvatarFallback> </AvatarFallback>
           </Avatar>
-          <p className="ml-4">
-            Estação atual: {stations[currentStationIndex]?.name} (
-            {stations[currentStationIndex]?.country})
-          </p>
+          <div className="ml-4 flex flex-col">
+            <span>Estação atual: {stations[currentStationIndex]?.name}</span>
+            <span>({stations[currentStationIndex]?.country})</span>
+          </div>
         </div>
 
-        <div className="flex justify-between mb-4">
+        <div className="flex justify-center space-x-4 mb-4">
           <Button
+            variant="outline"
             onClick={() =>
               changeStation(
                 (currentStationIndex - 1 + stations.length) % stations.length,
               )
             }
+            className="rounded-full"
+            aria-label="Anterior"
           >
-            Anterior
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M17 7l-7 7 7 7"
+              />
+            </svg>
           </Button>
+
           {isPlaying ? (
-            <Button onClick={stopRadio}>Pausar</Button>
+            <Button
+              variant="destructive"
+              onClick={stopRadio}
+              className="rounded-full"
+              aria-label="Pausar"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-6 h-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M6 19V6M18 19V6"
+                />
+              </svg>
+            </Button>
           ) : (
-            <Button onClick={playRadio}>Play</Button>
+            <Button
+              variant="default"
+              onClick={playRadio}
+              className="rounded-full"
+              aria-label="Play"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-6 h-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M5 3l14 9-14 9V3z"
+                />
+              </svg>
+            </Button>
           )}
+
           <Button
+            variant="outline"
             onClick={() =>
               changeStation((currentStationIndex + 1) % stations.length)
             }
+            className="rounded-full"
+            aria-label="Próxima"
           >
-            Próxima
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M7 7l7 7-7 7"
+              />
+            </svg>
           </Button>
         </div>
 
