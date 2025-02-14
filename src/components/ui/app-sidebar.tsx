@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/select';
 import { useState } from 'react';
 
-// This is sample data.
+// Dados de exemplo
 const data = {
   user: {
     name: 'shadcn',
@@ -64,18 +64,9 @@ const data = {
       icon: SquareTerminal,
       isActive: true,
       items: [
-        {
-          title: 'History',
-          url: '#',
-        },
-        {
-          title: 'Starred',
-          url: '#',
-        },
-        {
-          title: 'Settings',
-          url: '#',
-        },
+        { title: 'History', url: '#' },
+        { title: 'Starred', url: '#' },
+        { title: 'Settings', url: '#' },
       ],
     },
     {
@@ -83,18 +74,9 @@ const data = {
       url: '#',
       icon: Bot,
       items: [
-        {
-          title: 'Genesis',
-          url: '#',
-        },
-        {
-          title: 'Explorer',
-          url: '#',
-        },
-        {
-          title: 'Quantum',
-          url: '#',
-        },
+        { title: 'Genesis', url: '#' },
+        { title: 'Explorer', url: '#' },
+        { title: 'Quantum', url: '#' },
       ],
     },
     {
@@ -102,22 +84,10 @@ const data = {
       url: '#',
       icon: BookOpen,
       items: [
-        {
-          title: 'Introduction',
-          url: '#',
-        },
-        {
-          title: 'Get Started',
-          url: '#',
-        },
-        {
-          title: 'Tutorials',
-          url: '#',
-        },
-        {
-          title: 'Changelog',
-          url: '#',
-        },
+        { title: 'Introduction', url: '#' },
+        { title: 'Get Started', url: '#' },
+        { title: 'Tutorials', url: '#' },
+        { title: 'Changelog', url: '#' },
       ],
     },
     {
@@ -125,54 +95,31 @@ const data = {
       url: '#',
       icon: Settings2,
       items: [
-        {
-          title: 'General',
-          url: '#',
-        },
-        {
-          title: 'Team',
-          url: '#',
-        },
-        {
-          title: 'Billing',
-          url: '#',
-        },
-        {
-          title: 'Limits',
-          url: '#',
-        },
+        { title: 'General', url: '#' },
+        { title: 'Team', url: '#' },
+        { title: 'Billing', url: '#' },
+        { title: 'Limits', url: '#' },
       ],
     },
   ],
   projects: [
-    {
-      name: 'Design Engineering',
-      url: '#',
-      icon: Frame,
-    },
-    {
-      name: 'Sales & Marketing',
-      url: '#',
-      icon: PieChart,
-    },
-    {
-      name: 'Travel',
-      url: '#',
-      icon: Map,
-    },
+    { name: 'Design Engineering', url: '#', icon: Frame },
+    { name: 'Sales & Marketing', url: '#', icon: PieChart },
+    { name: 'Travel', url: '#', icon: Map },
   ],
 };
 
 export function AppSidebar({
   onFeedChange,
+  children,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   onFeedChange: (feedName: string, feedUrl: string) => void;
 }) {
   const [rssFeedUrl, setRssFeedUrl] = useState(
-    'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml',
+    'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml'
   );
-  // TODO: mover todo o componente Select de RSS para um arquivo separado
+  // Lista de feeds RSS
   const rssFeeds = [
     {
       label: 'NY Times - Home Page',
@@ -181,7 +128,6 @@ export function AppSidebar({
     { label: 'BBC News', value: 'http://feeds.bbci.co.uk/news/rss.xml' },
     { label: 'CNN', value: 'http://rss.cnn.com/rss/edition.rss' },
     { label: 'BBC Brasil', value: 'http://www.bbc.co.uk/portuguese/index.xml' },
-    //{ label: 'G1', value: 'https://g1.globo.com/rss/g1/' }, G1 esta crashando
     {
       label: 'Gazeta do Povo - Política',
       value: 'https://www.gazetadopovo.com.br/feed/rss/republica.xml',
@@ -202,7 +148,7 @@ export function AppSidebar({
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        {/* Adicionando o Combobox para selecionar o feed RSS */}
+        {/* Combobox para selecionar o feed RSS */}
         <Select
           onValueChange={(value) => {
             const selectedFeed = rssFeeds.find((feed) => feed.value === value);
@@ -227,6 +173,9 @@ export function AppSidebar({
 
         <NavMain items={data.navMain} />
         <NavProjects projects={data.projects} />
+
+        {/* Renderiza os children passados para a sidebar */}
+        {children}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
@@ -235,3 +184,5 @@ export function AppSidebar({
     </Sidebar>
   );
 }
+
+export default AppSidebar;

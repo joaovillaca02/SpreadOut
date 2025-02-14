@@ -9,7 +9,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'URL não fornecida' }, { status: 400 });
     }
 
-    console.log(`🔍 Buscando RSS: ${url}`);
+    console.log(`🔍 RSS Feed: ${url}`);
 
     const response = await fetch(url, {
       headers: { 'User-Agent': 'Mozilla/5.0' },
