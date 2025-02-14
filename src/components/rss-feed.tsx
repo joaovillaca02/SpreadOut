@@ -12,6 +12,7 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination';
 import xml2js from 'xml2js';
+import { Label } from './ui/label';
 
 type FeedItem = {
   title: string;
@@ -22,7 +23,7 @@ type FeedItem = {
   imageUrl?: string;
 };
 
-const RSSFeed: React.FC<{ feedUrl: string }> = ({ feedUrl }) => {
+const RSSFeed: React.FC<{ feedUrl: string, feedName: string }> = ({ feedUrl, feedName }) => {
   const [items, setItems] = useState<FeedItem[]>([]);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,7 +48,6 @@ const RSSFeed: React.FC<{ feedUrl: string }> = ({ feedUrl }) => {
             console.error('Erro ao parsear XML:', err);
             return;
           }
-
           const feedImage = result.rss.channel.image?.url || null;
           setImageUrl(feedImage);
 
@@ -137,17 +137,17 @@ const RSSFeed: React.FC<{ feedUrl: string }> = ({ feedUrl }) => {
     <div className="p-4 w-full max-w-lg mx-auto">
       <h2 className="text-xl font-bold mb-4 text-center">Últimas Notícias</h2>
 
-      {imageUrl && (
-        <div className="flex justify-center mb-4">
+      <div className="flex justify-center mb-4">
+      {imageUrl ? (
           <Image
-            src={imageUrl}
-            alt="RSS Feed Logo"
-            layout="intrinsic"
-            width={250}
-            height={40}
+        src={imageUrl}
+        alt="RSS Feed Logo"
+        layout="intrinsic"
+        width={250}
+        height={40}
           />
+        ) : <Label className="text-lg font-bold">{feedName}</Label>}
         </div>
-      )}
 
       {loading ? (
         <p>Carregando...</p>
