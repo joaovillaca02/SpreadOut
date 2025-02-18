@@ -9,7 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Label } from '@radix-ui/react-label';
 import { useRadio } from '@/app/contexts/radio-context';
-import { GrVolume } from 'react-icons/gr';
+import { GrDrag, GrVolume } from 'react-icons/gr';
 
 type FloatingPos = { x: number; y: number };
 
@@ -17,9 +17,7 @@ interface FloatingRadioWidgetProps {
   floatingPos: FloatingPos;
 }
 
-export const FloatingRadioWidget: React.FC<FloatingRadioWidgetProps> = ({
-  floatingPos,
-}) => {
+export const FloatingRadioWidget: React.FC<FloatingRadioWidgetProps> = ({ floatingPos }) => {
   const {
     audioRef,
     stations,
@@ -33,16 +31,17 @@ export const FloatingRadioWidget: React.FC<FloatingRadioWidgetProps> = ({
     handleVolumeChange,
   } = useRadio();
 
-  // useDraggable: apenas a área de drag (o handle) usará os listeners/attributes.
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: 'floating-radio-widget',
   });
 
+  // Because we're using absolute positioning relative to the SidebarInset,
+  // our floatingPos coordinates will be relative to that container.
   const x = floatingPos.x + (transform?.x || 0);
   const y = floatingPos.y + (transform?.y || 0);
 
   const containerStyle = {
-    position: 'fixed' as const,
+    position: 'absolute' as const, // Changed from 'fixed' to 'absolute'
     transform: `translate3d(${x}px, ${y}px, 0)`,
     zIndex: 1000,
   };
@@ -52,15 +51,13 @@ export const FloatingRadioWidget: React.FC<FloatingRadioWidgetProps> = ({
   }
 
   return (
-    <div style={containerStyle} ref={setNodeRef}>
-      <Card className="p-2 w-full max-w-xs rounded-md shadow-md bg-white">
-        {/* Drag Handle: apenas essa área inicia o drag */}
-        <div
-          {...listeners}
-          {...attributes}
-          className="cursor-grab p-1 bg-gray-200 rounded-t-md"
-        >
-          <Label className="text-sm">🎵 Rádio (Arraste aqui)</Label>
+    <div id="floating-radio-widget" style={containerStyle} ref={setNodeRef}>
+      <Card className="p-2 w-full max-w-xs rounded-md shadow-md bg-white dark:bg-gray-800">
+        {/* Drag Handle */}
+        <div {...listeners} {...attributes} className="cursor-grab p-1 rounded-t-md">
+          <Label className="text-sm flex items-center space-x-1">
+            <GrDrag /> 🎵 Rádio
+          </Label>
         </div>
         <CardContent className="space-y-2">
           <audio ref={audioRef} style={{ display: 'none' }} />
@@ -78,9 +75,7 @@ export const FloatingRadioWidget: React.FC<FloatingRadioWidgetProps> = ({
               variant="outline"
               size="sm"
               onClick={() =>
-                changeStation(
-                  (currentStationIndex - 1 + stations.length) % stations.length
-                )
+                changeStation((currentStationIndex - 1 + stations.length) % stations.length)
               }
               aria-label="Anterior"
               className="rounded-full"
@@ -92,12 +87,7 @@ export const FloatingRadioWidget: React.FC<FloatingRadioWidgetProps> = ({
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M17 7l-7 7 7 7"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 7l-7 7 7 7" />
               </svg>
             </Button>
             {isPlaying ? (
@@ -115,12 +105,7 @@ export const FloatingRadioWidget: React.FC<FloatingRadioWidgetProps> = ({
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 19V6M18 19V6"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 19V6M18 19V6" />
                 </svg>
               </Button>
             ) : (
@@ -138,12 +123,7 @@ export const FloatingRadioWidget: React.FC<FloatingRadioWidgetProps> = ({
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M5 3l14 9-14 9V3z"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3l14 9-14 9V3z" />
                 </svg>
               </Button>
             )}
@@ -163,25 +143,20 @@ export const FloatingRadioWidget: React.FC<FloatingRadioWidgetProps> = ({
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M7 7l7 7-7 7"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7l7 7-7 7" />
               </svg>
             </Button>
           </div>
           <div className="flex items-center mb-4">
-                    <GrVolume className='mr-2'/>
-                    <Slider
-                      value={[volume]}
-                      max={1}
-                      step={0.01}
-                      onValueChange={handleVolumeChange}
-                      className="w-full"
-                    />
-                  </div>
+            <GrVolume className="mr-2" />
+            <Slider
+              value={[volume]}
+              max={1}
+              step={0.01}
+              onValueChange={handleVolumeChange}
+              className="w-full"
+            />
+          </div>
         </CardContent>
       </Card>
     </div>

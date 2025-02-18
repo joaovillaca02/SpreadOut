@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/pagination';
 import xml2js from 'xml2js';
 import { Label } from './ui/label';
-
+import { Query, QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
 type FeedItem = {
   title: string;
   link: string;
@@ -31,105 +31,115 @@ const RSSFeed: React.FC<{ feedUrl: string, feedName: string }> = ({ feedUrl, fee
   const [itemsPerPage] = useState(5);
   const [totalItems, setTotalItems] = useState<number>(0);
 
-  useEffect(() => {
-    const fetchRSS = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `/api/rss?url=${encodeURIComponent(feedUrl)}`,
-        );
-        if (!response.ok) {
-          throw new Error(`Erro ao buscar RSS: ${response.statusText}`);
+  const fetchRSS = async (url: string, page: number, itemsPerPage: number) => {
+    const response = await fetch(`/api/rss?url=${encodeURIComponent(url)}`);
+    if (!response.ok) {
+      throw new Error(`Erro ao buscar RSS: ${response.statusText}`);
+    }
+
+    const xmlData = await response.text();
+    return new Promise<{
+      feedImage: string | null;
+      parsedItems: FeedItem[];
+      totalFeedItems: number;
+    }>((resolve, reject) => {
+      xml2js.parseString(xmlData, { explicitArray: false }, (err, result) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        const feedImage = result.rss.channel.image?.url || null;
+
+        const items = result.rss.channel.item;
+        if (!items) {
+          resolve({ feedImage, parsedItems: [], totalFeedItems: 0 });
+          return;
         }
 
-        const xmlData = await response.text();
-        xml2js.parseString(xmlData, { explicitArray: false }, (err, result) => {
-          if (err) {
-            console.error('Erro ao parsear XML:', err);
-            return;
-          }
-          const feedImage = result.rss.channel.image?.url || null;
-          setImageUrl(feedImage);
+        const totalFeedItems = Array.isArray(items) ? items.length : 1;
 
-          const items = result.rss.channel.item;
-          if (!items) {
-            console.warn('Nenhum item encontrado no feed');
-            return;
-          }
+        const startIndex = (page - 1) * itemsPerPage;
+        const pagedItems = Array.isArray(items)
+          ? items.slice(startIndex, startIndex + itemsPerPage)
+          : [items];
 
-          const totalFeedItems = Array.isArray(items) ? items.length : 1;
-          setTotalItems(totalFeedItems);
+        const parsedItems = pagedItems.map(
+          (item: {
+            content: string | undefined;
+            title: string;
+            link: string;
+            pubDate?: string;
+            description?: string;
+            creator?: string;
+            'content:encoded'?: string;
+            'media:group'?: { 'media:content'?: { $: { url: string } }[] };
+            'media:content'?: { $: { url: string } };
+            'dc:creator'?: string;
+            'media:thumbnail'?: { $: { url: string } };
+          }) => {
+            let description =
+              item.description ||
+              item.content ||
+              item['content:encoded'] ||
+              '';
 
-          const startIndex = (page - 1) * itemsPerPage;
-          const pagedItems = Array.isArray(items)
-            ? items.slice(startIndex, startIndex + itemsPerPage)
-            : [items];
+            let imageUrl =
+              item['media:group']?.['media:content']?.[0]?.$.url ||
+              item['media:content']?.$.url ||
+              null;
+            if (item['media:thumbnail']) {
+              imageUrl = item['media:thumbnail']?.$.url || imageUrl;
+            }
 
-          const parsedItems = pagedItems.map(
-            (item: {
-              content: string | undefined;
-              title: string;
-              link: string;
-              pubDate?: string;
-              description?: string;
-              creator?: string;
-              'content:encoded'?: string;
-              'media:group'?: { 'media:content'?: { $: { url: string } }[] };
-              'media:content'?: { $: { url: string } };
-              'dc:creator'?: string;
-              'media:thumbnail'?: { $: { url: string } };
-            }) => {
-              let description =
-                item.description ||
-                item.content ||
-                item['content:encoded'] ||
-                '';
+            // Verifica se a descrição contém uma tag <img>
+            if (/<img[^>]+src="([^"]+)"/.test(description)) {
+              // Regex para capturar a URL da imagem dentro do <description>
+              const imgMatch = description.match(/<img[^>]+src="([^"]+)"/);
+              imageUrl = imgMatch ? imgMatch[1] : null;
 
-              let imageUrl =
-                item['media:group']?.['media:content']?.[0]?.$.url ||
-                item['media:content']?.$.url ||
-                null;
-              if (item['media:thumbnail']) {
-                imageUrl = item['media:thumbnail']?.$.url || imageUrl;
-              }
+              // Remove a tag <img> da descrição
+              description = description.replace(/<img[^>]+>/, '').trim();
+              description = description.replace(/<br[^>]+>/, '').trim();
+            }
 
-              // Verifica se a descrição contém uma tag <img>
-              if (/<img[^>]+src="([^"]+)"/.test(description)) {
-                // Regex para capturar a URL da imagem dentro do <description>
-                const imgMatch = description.match(/<img[^>]+src="([^"]+)"/);
-                imageUrl = imgMatch ? imgMatch[1] : null;
+            const creator =
+              item['dc:creator'] || item.creator || 'Desconhecido';
+            const link = item.link;
 
-                // Remove a tag <img> da descrição
-                description = description.replace(/<img[^>]+>/, '').trim();
-                description = description.replace(/<br[^>]+>/, '').trim();
-              }
+            return {
+              title: item.title,
+              description: description,
+              pubDate: item.pubDate,
+              imageUrl: imageUrl,
+              creator: creator,
+              link: link,
+            };
+          },
+        ) as FeedItem[];
 
-              const creator =
-                item['dc:creator'] || item.creator || 'Desconhecido';
-              const link = item.link;
+        resolve({ feedImage, parsedItems, totalFeedItems });
+      });
+    });
+  };
 
-              return {
-                title: item.title,
-                description: description,
-                pubDate: item.pubDate,
-                imageUrl: imageUrl,
-                creator: creator,
-                link: link,
-              };
-            },
-          ) as FeedItem[];
+  
+  const { data, isLoading } = useQuery<{
+    feedImage: string | null;
+    parsedItems: FeedItem[];
+    totalFeedItems: number;
+  }>({
+    queryKey: ['rssFeed', feedUrl, page, itemsPerPage],
+    queryFn: () => fetchRSS(feedUrl, page, itemsPerPage),
+  });
 
-          setItems(parsedItems);
-        });
-      } catch (error) {
-        console.error('Erro ao buscar feed RSS:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRSS();
-  }, [feedUrl, page, itemsPerPage]);
+  useEffect(() => {
+    if (data) {
+      setImageUrl(data.feedImage);
+      setItems(data.parsedItems);
+      setTotalItems(data.totalFeedItems);
+      setLoading(isLoading);
+    }
+  }, [data, isLoading]);
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 

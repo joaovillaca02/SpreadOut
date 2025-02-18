@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useState } from 'react';
+import { Button } from './button';
 
 // Dados de exemplo
 const data = {
@@ -111,10 +112,14 @@ const data = {
 
 export function AppSidebar({
   onFeedChange,
+  onViewModeChange,
+  viewMode,
   children,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   onFeedChange: (feedName: string, feedUrl: string) => void;
+  onViewModeChange?: (viewMode: 'rss' | 'radio') => void;
+  viewMode: 'rss' | 'radio';
 }) {
   const [rssFeedUrl, setRssFeedUrl] = useState(
     'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml'
@@ -170,6 +175,12 @@ export function AppSidebar({
             ))}
           </SelectContent>
         </Select>
+        <Button
+        onClick={() => onViewModeChange && onViewModeChange(viewMode === 'rss' ? 'radio' : 'rss')}
+        className="rounded-md mt-4 w-full" variant="outline"
+      >
+        {viewMode === 'rss' ? 'Ir para Rádio' : 'Ir para RSS'}
+      </Button>
 
         <NavMain items={data.navMain} />
         <NavProjects projects={data.projects} />

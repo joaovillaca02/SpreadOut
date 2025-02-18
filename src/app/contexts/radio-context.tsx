@@ -3,13 +3,13 @@
 import React, { createContext, useContext, useRef, useState, useEffect } from 'react';
 
 export type RadioStation = {
-    name: string;
-    url: string;
-    country: string;
-    favicon: string;
-    tags: string;
-    [key: string]: string;
-  };
+  name: string;
+  url: string;
+  country: string;
+  favicon: string;
+  tags: string;
+  [key: string]: string;
+};
 
 interface RadioContextType {
   audioRef: React.RefObject<HTMLAudioElement | null>;
@@ -22,6 +22,7 @@ interface RadioContextType {
   stopRadio: () => void;
   changeStation: (index: number) => void;
   handleVolumeChange: (value: number[]) => void;
+  fetchMoreStations: () => void;
 }
 
 const RadioContext = createContext<RadioContextType | undefined>(undefined);
@@ -96,6 +97,26 @@ export const RadioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const fetchMoreStations = async () => {
+    try {
+      const response = await fetch(`https://de1.api.radio-browser.info/json/stations?offset=${stations.length}&limit=50`);
+      const data = await response.json();
+      const newStations = data
+        .filter((station: RadioStation) => station.url && station.name)
+        .map((station: RadioStation) => ({
+          name: station.name,
+          url: station.url,
+          country: station.country || 'Desconhecido',
+          favicon: station.favicon || '',
+          tags: station.tags || '',
+        }));
+      setStations((prev) => [...prev, ...newStations]);
+    } catch (error) {
+      console.error('Erro ao buscar mais estações:', error);
+    }
+    
+};
+
   return (
     <RadioContext.Provider
       value={{
@@ -109,13 +130,16 @@ export const RadioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         stopRadio,
         changeStation,
         handleVolumeChange,
+        fetchMoreStations,
       }}
     >
+      {/* Renderiza o elemento de áudio uma única vez */}
+      <audio ref={audioRef} style={{ display: 'none' }} />
       {children}
     </RadioContext.Provider>
   );
 };
-
+  
 export const useRadio = () => {
   const context = useContext(RadioContext);
   if (!context) {
